@@ -7,7 +7,7 @@
 !(function($) {
   "use strict";
 
-  // Nav Menu
+  // Nav Menu - smooth scroll to section
   $(document).on('click', '.nav-menu a, .mobile-nav a', function(e) {
     if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') && location.hostname == this.hostname) {
       var hash = this.hash;
@@ -21,20 +21,12 @@
         }
 
         if (hash == '#header') {
-          $('#header').removeClass('header-top');
-          $("section").removeClass('section-show');
-          return;
-        }
-
-        if (!$('#header').hasClass('header-top')) {
-          $('#header').addClass('header-top');
-          setTimeout(function() {
-            $("section").removeClass('section-show');
-            $(hash).addClass('section-show');
-          }, 350);
+          $('html, body').animate({ scrollTop: 0 }, 600, 'swing');
         } else {
-          $("section").removeClass('section-show');
-          $(hash).addClass('section-show');
+          var headerHeight = $('#header').hasClass('header-top') ? 80 : 0;
+          $('html, body').animate({
+            scrollTop: target.offset().top - headerHeight
+          }, 600, 'swing');
         }
 
         if ($('body').hasClass('mobile-nav-active')) {
@@ -44,22 +36,66 @@
         }
 
         return false;
-
       }
     }
+  });
+
+  // Scroll-based header shrink
+  $(window).on('scroll', function() {
+    var scrollPos = $(this).scrollTop();
+    var headerHeight = $('#header').outerHeight();
+
+    if (scrollPos > headerHeight * 0.6) {
+      if (!$('#header').hasClass('header-top')) {
+        $('#header').addClass('header-top');
+        $('#header-spacer').addClass('active');
+      }
+    } else {
+      if ($('#header').hasClass('header-top')) {
+        $('#header').removeClass('header-top');
+        $('#header-spacer').removeClass('active');
+      }
+    }
+
+    // Update active nav link based on scroll position
+    var navSections = ['#contacts', '#skills', '#portfolio', '#experience', '#education', '#about'];
+    var activeSet = false;
+
+    for (var i = 0; i < navSections.length; i++) {
+      var $sec = $(navSections[i]);
+      if ($sec.length && scrollPos >= $sec.offset().top - 200) {
+        $('.nav-menu .active, .mobile-nav .active').removeClass('active');
+        $('.nav-menu, .mobile-nav').find('a[href="' + navSections[i] + '"]').parent('li').addClass('active');
+        activeSet = true;
+        break;
+      }
+    }
+
+    if (!activeSet) {
+      $('.nav-menu .active, .mobile-nav .active').removeClass('active');
+      $('.nav-menu, .mobile-nav').find('a[href="#header"]').parent('li').addClass('active');
+    }
+
+    // Reveal sections as they scroll into view
+    $('section').each(function() {
+      var sectionTop = $(this).offset().top;
+      var windowBottom = scrollPos + $(window).height();
+      if (windowBottom > sectionTop + 100) {
+        $(this).addClass('section-visible');
+      }
+    });
   });
 
   // Activate/show sections on load with hash links
   if (window.location.hash) {
     var initial_nav = window.location.hash;
     if ($(initial_nav).length) {
-      $('#header').addClass('header-top');
-      $('.nav-menu .active, .mobile-nav .active').removeClass('active');
-      $('.nav-menu, .mobile-nav').find('a[href="' + initial_nav + '"]').parent('li').addClass('active');
       setTimeout(function() {
-        $("section").removeClass('section-show');
-        $(initial_nav).addClass('section-show');
-      }, 350);
+        var headerHeight = 80;
+        $('html, body').animate({
+          scrollTop: $(initial_nav).offset().top - headerHeight
+        }, 600);
+      }, 500);
     }
   }
 
@@ -140,12 +176,14 @@
         filter: $(this).data('filter')
       });
     });
-
   });
 
   // Initiate venobox (lightbox feature used in portofilo)
   $(document).ready(function() {
     $('.venobox').venobox();
+
+    // Trigger initial scroll check to reveal visible sections
+    $(window).trigger('scroll');
   });
 
 })(jQuery);
