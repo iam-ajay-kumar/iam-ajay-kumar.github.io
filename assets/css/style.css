@@ -8,11 +8,16 @@
 /*--------------------------------------------------------------
 # General
 --------------------------------------------------------------*/
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: "Open Sans", sans-serif;
   color: #fff;
   position: relative;
   background: transparent;
+  overflow-x: hidden;
 }
 
 body::before {
@@ -24,6 +29,7 @@ body::before {
   right: 0;
   top: 0;
   height: 100vh;
+  z-index: -1;
 }
 
 @media (min-width: 1024px) {
@@ -71,6 +77,37 @@ h1, h2, h3, h4, h5, h6 {
   object-fit: cover;
   border: 3px solid #12d640;
   box-shadow: 0 0 15px rgba(18, 214, 64, 0.4);
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 50px;
+  border: 2px solid rgba(18, 214, 64, 0.6);
+  border-radius: 15px;
+}
+
+.scroll-indicator span {
+  display: block;
+  width: 6px;
+  height: 6px;
+  background: #12d640;
+  border-radius: 50%;
+  margin: 8px auto 0;
+  animation: scrollBounce 2s infinite;
+}
+
+@keyframes scrollBounce {
+  0%   { opacity: 1; transform: translateY(0); }
+  50%  { opacity: 0.3; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+#header.header-top .scroll-indicator {
+  display: none;
 }
 
 #header * {
@@ -284,14 +321,27 @@ h1, h2, h3, h4, h5, h6 {
   color: #fff;
 }
 
-/* Header Top */
+/* Header Top - sticky header when scrolled past home */
 #header.header-top {
-  height: 90px;
+  height: 80px;
   position: fixed;
   left: 0;
   top: 0;
   right: 0;
-  background: #09203a;
+  background: rgba(9, 32, 58, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 999;
+  transition: all 0.4s ease;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+}
+
+#header-spacer {
+  display: none;
+  height: 100vh;
+}
+
+#header-spacer.active {
+  display: block;
 }
 
 #header.header-top .social-links, #header.header-top h2 {
@@ -330,19 +380,24 @@ h1, h2, h3, h4, h5, h6 {
 --------------------------------------------------------------*/
 section {
   overflow: hidden;
-  position: absolute;
+  position: relative;
   width: 100%;
-  top: 140px;
-  bottom: 100%;
   opacity: 0;
   z-index: 2;
+  transform: translateY(60px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  padding: 60px 0;
 }
 
-section.section-show {
-  top: 70px;
-  bottom: auto;
+section.section-visible {
   opacity: 1;
-  padding-bottom: 0px;
+  transform: translateY(0);
+}
+
+/* Legacy classes - keep for compatibility but no longer needed */
+section.section-show {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 section .container {
@@ -352,10 +407,7 @@ section .container {
 
 @media (max-width: 768px) {
   section {
-    top: 120px;
-  }
-  section.section-show {
-    top: 80px;
+    padding: 40px 0;
   }
 }
 
